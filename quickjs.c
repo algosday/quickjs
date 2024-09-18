@@ -68,9 +68,9 @@
 
 /* define to include Atomics.* operations which depend on the OS
    threads */
-#if !defined(EMSCRIPTEN)
-#define CONFIG_ATOMICS
-#endif
+// #if !defined(EMSCRIPTEN)
+// #define CONFIG_ATOMICS
+// #endif
 
 #if !defined(EMSCRIPTEN)
 /* enable stack limitation */
@@ -2170,15 +2170,15 @@ JSContext *JS_NewContext(JSRuntime *rt)
 
     JS_AddIntrinsicBaseObjects(ctx);
     JS_AddIntrinsicDate(ctx);
-    JS_AddIntrinsicEval(ctx);
+    // JS_AddIntrinsicEval(ctx);
     JS_AddIntrinsicStringNormalize(ctx);
-    JS_AddIntrinsicRegExp(ctx);
+    // JS_AddIntrinsicRegExp(ctx);
     JS_AddIntrinsicJSON(ctx);
-    JS_AddIntrinsicProxy(ctx);
-    JS_AddIntrinsicMapSet(ctx);
+    // JS_AddIntrinsicProxy(ctx);
+    // JS_AddIntrinsicMapSet(ctx);
     JS_AddIntrinsicTypedArrays(ctx);
     JS_AddIntrinsicPromise(ctx);
-    JS_AddIntrinsicBigInt(ctx);
+    // JS_AddIntrinsicBigInt(ctx);
     return ctx;
 }
 
@@ -34507,7 +34507,7 @@ static JSValue __JS_EvalInternal(JSContext *ctx, JSValueConst this_obj,
 
     push_scope(s); /* body scope */
     fd->body_scope = fd->scope_level;
-
+    //todo remove parser
     err = js_parse_program(s);
     if (err) {
     fail:

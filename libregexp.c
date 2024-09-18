@@ -844,8 +844,9 @@ static int re_parse_char_class(REParseState *s, const uint8_t **pp)
         }
     }
     if (s->ignore_case) {
-        if (cr_regexp_canonicalize(cr, s->is_unicode))
-            goto memory_error;
+        //todo
+        // if (cr_regexp_canonicalize(cr, s->is_unicode))
+            // goto memory_error;
     }
     if (invert) {
         if (cr_invert(cr))

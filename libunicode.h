@@ -27,7 +27,6 @@
 #include <stdint.h>
 
 /* define it to include all the unicode tables (40KB larger) */
-#define CONFIG_ALL_UNICODE
 
 #define LRE_CC_RES_LEN_MAX 3
 
