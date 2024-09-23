@@ -16035,6 +16035,9 @@ static JSValue js_call_c_function(JSContext *ctx, JSValueConst func_obj,
     case JS_CFUNC_generic:
         ret_val = func.generic(ctx, this_obj, argc, arg_buf);
         break;
+    case JS_CFUNC_generic_ptr:
+        ret_val = func.generic_ptr(ctx, this_obj, argc, arg_buf, NULL);
+        break;
     case JS_CFUNC_constructor_magic:
     case JS_CFUNC_constructor_or_func_magic:
         if (!(flags & JS_CALL_FLAG_CONSTRUCTOR)) {
@@ -43670,7 +43673,8 @@ static JSValue js_regexp_constructor(JSContext *ctx, JSValueConst new_target,
                 goto fail;
         }
     }
-    bc = js_compile_regexp(ctx, pattern, flags);
+    bc = JS_ThrowTypeError(ctx, "runtime regex compile is not supported");
+    // bc = js_compile_regexp(ctx, pattern, flags);
     if (JS_IsException(bc))
         goto fail;
     JS_FreeValue(ctx, flags);
@@ -44975,7 +44979,7 @@ static const JSCFunctionListEntry js_regexp_proto_funcs[] = {
     JS_CGETSET_MAGIC_DEF("sticky", js_regexp_get_flag, NULL, LRE_FLAG_STICKY ),
     JS_CGETSET_MAGIC_DEF("hasIndices", js_regexp_get_flag, NULL, LRE_FLAG_INDICES ),
     JS_CFUNC_DEF("exec", 1, js_regexp_exec ),
-    JS_CFUNC_DEF("compile", 2, js_regexp_compile ),
+    // JS_CFUNC_DEF("compile", 2, js_regexp_compile ),
     JS_CFUNC_DEF("test", 1, js_regexp_test ),
     JS_CFUNC_DEF("toString", 0, js_regexp_toString ),
     JS_CFUNC_DEF("[Symbol.replace]", 2, js_regexp_Symbol_replace ),
@@ -55977,4 +55981,40 @@ void JS_AddIntrinsicTypedArrays(JSContext *ctx)
 #ifdef CONFIG_ATOMICS
     JS_AddIntrinsicAtomics(ctx);
 #endif
+}
+
+JS_BOOL JS_IsUint8Array(JSValue obj) {
+    return JS_GetClassID(obj) == JS_CLASS_UINT8_ARRAY;
+}
+
+JS_BOOL JS_IsArrayBuffer(JSValue obj) {
+    return JS_GetClassID(obj) == JS_CLASS_ARRAY_BUFFER;
+}
+
+/* return NULL if exception. WARNING: any JS call can detach the
+   buffer and render the returned pointer invalid */
+uint8_t *JS_GetUint8Array(JSContext *ctx, size_t *psize, JSValue obj)
+{
+    JSObject *p;
+    JSTypedArray *ta;
+    JSArrayBuffer *abuf;
+    p = get_typed_array(ctx, obj, FALSE);
+    if (!p)
+        goto fail;
+    if (typed_array_is_detached(ctx, p)) {
+        JS_ThrowTypeErrorDetachedArrayBuffer(ctx);
+        goto fail;
+    }
+    if (p->class_id != JS_CLASS_UINT8_ARRAY && p->class_id != JS_CLASS_UINT8C_ARRAY) {
+        JS_ThrowTypeError(ctx, "not a Uint8Array");
+        goto fail;
+    }
+    ta = p->u.typed_array;
+    abuf = ta->buffer->u.array_buffer;
+
+    *psize = ta->length;
+    return abuf->data + ta->offset;
+ fail:
+    *psize = 0;
+    return NULL;
 }
